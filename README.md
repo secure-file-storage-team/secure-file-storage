@@ -54,131 +54,110 @@
 7. **Testing & CI** — тестілеу және автоматтандырылған тексеру.
 
 ### Архитектура диаграммасы
-
 ```mermaid
 flowchart TD
-    A[Пайдаланушы] --> B[Client Application]
-    B --> C[Cryptography Library]
-    C --> D[AES-GCM Encryption]
-    C --> E[PBKDF2 Key Derivation]
-    C --> F[SHA-256 Integrity]
-    C --> G[RSA Key Management]
-    B --> H[REST API Server]
-    H --> I[Authentication and Permissions]
-    H --> J[(PostgreSQL)]
-    H --> K[(MinIO Vault)]
-    H --> L[Audit Logs]
-    M[GitHub Actions] --> N[Automated Tests]
-```
+    A["Пайдаланушы"] --> B["Client Application"]
+    B --> C["Cryptography Library"]
+    C --> D["AES-GCM"]
+    C --> E["PBKDF2"]
+    C --> F["SHA-256"]
+    C --> G["RSA"]
+    B --> H["REST API Server"]
+    H --> I["Authentication and Permissions"]
+    H --> J[("PostgreSQL")]
+    H --> K[("MinIO Vault")]
+    H --> L["Audit Logs"]
+    M["GitHub Actions"] --> N["Automated Tests"]
 
 ## 📊 UML диаграммалары
 
 ### 1. Use Case Diagram — жүйені пайдалану сценарийлері
 
 Бұл диаграмма пайдаланушы мен әкімшінің жүйеде қандай әрекеттер орындай алатынын көрсетеді.
-
 ```mermaid
-flowchart TD
-    U([Пайдаланушы])
-    A([Әкімші])
+flowchart LR
+    U["Пайдаланушы"]
+    A["Әкімші"]
 
-    subgraph S[Secure File Storage System]
-        UC1[Жүйеге тіркелу және кіру]
-        UC2[Файлды жүктеу]
-        UC3[Файлды шифрлау]
-        UC4[Файлды жүктеп алу]
-        UC5[Файлды дешифрлау]
-        UC6[Файлды бөлісу]
-        UC7[Уақытша сілтеме жасау]
-        UC8[Файл тұтастығын тексеру]
-        UC9[Файл нұсқаларын басқару]
-        UC10[Цифрлық қолтаңба]
-        UC11[Қолданушыларды басқару]
-        UC12[Аудит журналын қарау]
-    end
+    U --> UC1["Жүйеге кіру"]
+    U --> UC2["Файл жүктеу"]
+    U --> UC3["Файлды жүктеп алу"]
+    U --> UC4["Файлды бөлісу"]
+    U --> UC5["Сілтеме жасау"]
+    U --> UC6["Тұтастықты тексеру"]
+    U --> UC7["Файл нұсқаларын басқару"]
+    U --> UC8["Цифрлық қолтаңба"]
 
-    U --> UC1
-    U --> UC2
-    U --> UC4
-    U --> UC6
-    U --> UC7
-    U --> UC8
-    U --> UC9
-    U --> UC10
+    UC2 --> UC9["Файлды шифрлау"]
+    UC3 --> UC10["Файлды дешифрлау"]
 
-    UC2 --> UC3
-    UC4 --> UC5
-
-    A --> UC11
-    A --> UC12
-```
+    A --> UC11["Пайдаланушыларды басқару"]
+    A --> UC12["Аудит журналын қарау"]
 
 ### 2. Component Diagram — жүйе компоненттері
-
 ```mermaid
 flowchart TB
-    C[Client Application]
-    CR[Cryptography Library]
-    API[Spring Boot REST Server]
-    AUTH[Authentication and Permissions]
-    AUDIT[Audit Module]
-    DB[(PostgreSQL)]
-    S[(MinIO Vault)]
+    C["Client Application"]
+    CR["Cryptography Library"]
+    API["Spring Boot REST Server"]
+    AUTH["Authentication Module"]
+    AUDIT["Audit Module"]
+    DB[("PostgreSQL")]
+    MINIO[("MinIO Vault")]
 
     C --> CR
     C --> API
     API --> AUTH
     API --> AUDIT
     API --> DB
-    API --> S
-```
+    API --> MINIO
 
 ### 3. Class Diagram — жүйе кластары
-
 ```mermaid
 classDiagram
     class User {
-        +UUID id
-        +String username
-        +String passwordHash
-        +login()
-        +logout()
+        UUID id
+        String username
+        String passwordHash
+        login()
+        logout()
     }
 
     class FileMetadata {
-        +UUID id
-        +String fileName
-        +String storageKey
-        +String sha256Hash
-        +Date createdAt
+        UUID id
+        String fileName
+        String storageKey
+        String sha256Hash
+        createFile()
+        deleteFile()
     }
 
     class EncryptionService {
-        +encryptFile()
-        +decryptFile()
-        +deriveKey()
+        encryptFile()
+        decryptFile()
+        deriveKey()
     }
 
     class SharingService {
-        +shareFile()
-        +generateLink()
-        +revokeLink()
+        shareFile()
+        generateLink()
+        revokeLink()
     }
 
     class SignatureService {
-        +signFile()
-        +verifySignature()
+        signFile()
+        verifySignature()
     }
 
     class AuditService {
-        +recordEvent()
-        +getAuditLogs()
+        recordEvent()
+        getAuditLogs()
     }
 
     class FileVersion {
-        +UUID versionId
-        +int versionNumber
-        +Date createdAt
+        UUID versionId
+        int versionNumber
+        Date createdAt
     }
 
     User "1" --> "*" FileMetadata
@@ -187,38 +166,35 @@ classDiagram
     SharingService --> FileMetadata
     SignatureService --> FileMetadata
     AuditService --> User
-```
 
 ### 4. Sequence Diagram — файлды қауіпсіз жүктеу
-
 ```mermaid
 sequenceDiagram
-    actor User as Пайдаланушы
-    participant Client as Клиент
-    participant Crypto as Cryptography Library
-    participant API as REST Server
-    participant DB as PostgreSQL
+    actor User
+    participant Client
+    participant Crypto
+    participant API
+    participant DB
     participant MinIO
 
-    User->>Client: Файл мен құпиясөзді таңдау
-    Client->>Crypto: Криптографиялық кілт алу
+    User->>Client: Файлды таңдау
+    Client->>Crypto: Кілт алу
     Crypto->>Crypto: PBKDF2
     Crypto-->>Client: Дайын кілт
     Client->>Crypto: Файлды шифрлау
     Crypto->>Crypto: AES-GCM
-    Crypto->>Crypto: SHA-256 есептеу
+    Crypto->>Crypto: SHA-256
     Crypto-->>Client: Шифрланған файл
     Client->>API: Файлды жіберу
-    API->>MinIO: Шифрланған файлды сақтау
+    API->>MinIO: Файлды сақтау
     MinIO-->>API: Сақтау нәтижесі
-    API->>DB: Файл метадеректерін сақтау
+    API->>DB: Метадеректерді сақтау
     DB-->>API: Сақталды
-    API-->>Client: Сәтті жүктелді
+    API-->>Client: Сәтті орындалды
     Client-->>User: Файл қауіпсіз сақталды
-```
 
 ## 🔒 Қауіпсіздік мүмкіндіктері
-
+```mermaid
 | Функция | Сипаттамасы |
 |---|---|
 | AES-GCM | Файлдарды шифрлау және аутентификациялау |
@@ -238,7 +214,7 @@ sequenceDiagram
 - Сервермен байланыс HTTPS арқылы қорғалады.
 
 ## 📁 Жоба құрылымы
-
+```mermaid
 ```text
 secure-file-storage/
 │
